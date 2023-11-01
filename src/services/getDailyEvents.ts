@@ -25,7 +25,6 @@ connectDB().then(() => {
       "X-RapidAPI-Key": config.RAPID_API_KEY,
       "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
     },
-    data: "",
   };
 
   try {
