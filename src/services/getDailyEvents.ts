@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Event } from "../models/Event";
 import { connectDB } from "../config/db";
+import { config } from "../config/config";
 
 const date = new Date();
 
@@ -21,7 +22,7 @@ connectDB().then(() => {
     method: "GET",
     url: `https://sportscore1.p.rapidapi.com/sports/1/events/date/${dateToday}`,
     headers: {
-      "X-RapidAPI-Key": "e058b99fe9mshffd6581f1b1414dp16726djsn2f7e11cdb608",
+      "X-RapidAPI-Key": config.RAPID_API_KEY,
       "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
     },
     data: "",

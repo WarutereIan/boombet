@@ -11,12 +11,13 @@ import { connectDB } from "../config/db";
 import { Event } from "../models/Event";
 import { time } from "cron";
 import { Publisher } from "../config/rabbitmq/publishers";
+import { config } from "../config/config";
 
 const options = {
   method: "GET",
   url: "https://sportscore1.p.rapidapi.com/sports/1/events/live",
   headers: {
-    "X-RapidAPI-Key": "e058b99fe9mshffd6581f1b1414dp16726djsn2f7e11cdb608",
+    "X-RapidAPI-Key": config.RAPID_API_KEY,
     "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
   },
 };
