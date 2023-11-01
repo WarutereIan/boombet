@@ -1,10 +1,7 @@
 import "dotenv/config";
 
 export const config = {
-  //MONGO_URI: process.env.MONGO_STRING!,
-
-  MONGO_URI:
-    "mongodb+srv://nmwanik111:8YipZNtqGJHTibOQ@cluster0.ry4udah.mongodb.net/?retryWrites=true&w=majority",
+  MONGO_URI: process.env.MONGO_STRING!,
 
   MSG_BROKER_URL: process.env.MSG_BROKER_URL!,
 
