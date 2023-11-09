@@ -98,6 +98,8 @@ export const checkLiveEvents = async () => {
         await match.save();
 
         trueLiveEvents.push(match);
+
+        setTimeout(() => {}, 500);
       }
     }
 
