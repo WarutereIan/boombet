@@ -2,6 +2,7 @@ import axios from "axios";
 import { Event } from "../models/Event";
 import { connectDB } from "../config/db";
 import { config } from "../config/config";
+import { response } from "express";
 
 const date = new Date();
 
@@ -13,11 +14,11 @@ if (day / 10 < 1) {
 let month = date.getUTCMonth() + 1;
 let year = date.getFullYear();
 
-console.log(`${year}-${month}-${day}`); //day format with which to query api for events
+//day format with which to query api for events
 
 let dateToday = `${year}-${month}-${day}`;
 
-connectDB().then(() => {
+export const checkDailyEvents = () => {
   const options = {
     method: "GET",
     url: `https://sportscore1.p.rapidapi.com/sports/1/events/date/${dateToday}`,
@@ -32,8 +33,20 @@ connectDB().then(() => {
       let events: any = res.data.data;
 
       for (const event of events) {
-        if (event.sport_id == 1) {
-          await Event.create(event);
+        let _event;
+
+        if (event.sport_id == 1 && !(await Event.exists({ id: event.id }))) {
+          _event = await Event.create(event);
+
+          let _lineups = await getEventLineups(event.id);
+
+          let _markets = await getEventmarkets(event.id);
+
+          _event.markets = _markets;
+
+          _event.lineups = _lineups;
+
+          await _event.save();
         }
       }
 
@@ -42,4 +55,38 @@ connectDB().then(() => {
   } catch (err: any) {
     console.error(err.data);
   }
-});
+};
+
+const getEventmarkets = async (eventId: string) => {
+  const options = {
+    method: "GET",
+    url: `https://sportscore1.p.rapidapi.com/events/${eventId}/markets`,
+    headers: {
+      "X-RapidAPI-Key": config.RAPID_API_KEY,
+      "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
+    },
+  };
+
+  const response = await axios.request(options);
+
+  const markets = response.data.data;
+
+  return markets;
+};
+
+const getEventLineups = async (eventId: string) => {
+  const options = {
+    method: "GET",
+    url: `https://sportscore1.p.rapidapi.com/events/${eventId}/lineups`,
+    headers: {
+      "X-RapidAPI-Key": config.RAPID_API_KEY,
+      "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
+    },
+  };
+
+  const response = await axios.request(options);
+
+  const lineups = response.data.data;
+
+  return lineups;
+};

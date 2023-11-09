@@ -1,4 +1,4 @@
-[
+export const teams = [
   {
     id: 1,
     sport_id: 1,

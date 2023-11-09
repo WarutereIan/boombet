@@ -8,11 +8,16 @@ import { createServer } from "http";
 import { config } from "./config/config";
 import { startStreamingServer } from "./sockets/server";
 import { checkLiveEventsCron } from "./cronJobs/checkLiveGames";
+import { createTeams } from "./scripts/createTeams";
+import { checkDailyEvents } from "./services/getDailyEvents";
+import { createBookies } from "./scripts/createBookies";
+import { storeCacheValues } from "./config/cacheValues";
+import { getLeagues } from "./services/getLeagues";
 
 let db: any;
 
 (async () => {
-  db = await connectDB();
+  db = connectDB().then();
 })();
 
 //initialize express app
@@ -36,4 +41,10 @@ httpServer.listen(config.PORT || 9000, () => {
 });
 
 startStreamingServer();
+checkDailyEvents();
 checkLiveEventsCron.start();
+
+//createTeams().then();
+storeCacheValues().then();
+
+getLeagues().then();

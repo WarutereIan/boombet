@@ -73,5 +73,9 @@ export interface IEvent {
   section: {};
   sport: {};
   live: boolean;
-  subscribed: boolean;
+  prediction_changed: boolean;
+  markets: [];
+  lineups: [];
+  incidents: [];
+  stats: []
 }

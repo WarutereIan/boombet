@@ -2,9 +2,9 @@
   "name": "boombet",
   "version": "1.0.0",
   "description": "server for the boombet platform",
-  "main": "test.js",
+  "main": "server.ts",
   "scripts": {
-    "start": "ts-node src/server.ts",
+    "start": "ts-node --files src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -45,6 +45,7 @@
     "js-base64": "^3.7.5",
     "js-sha512": "^0.8.0",
     "jsonwebtoken": "^9.0.0",
+    "mongodb": "6.2",
     "mongoose": "^7.0.2",
     "os": "^0.1.2",
     "rabbitmq-client": "^4.3.0",
@@ -62,7 +63,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.13",
     "@types/cron": "^2.0.1",
-    "@types/jsonwebtoken": "^9.0.2",
+    "@types/jsonwebtoken": "^9.0.5",
     "@types/uuid": "^9.0.2",
     "ts-node-dev": "^2.0.0"
   }

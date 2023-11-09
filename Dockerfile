@@ -4,13 +4,12 @@
 # If you need more help, visit the Dockerfile reference guide at
 # https://docs.docker.com/engine/reference/builder/
 
-ARG NODE_VERSION=16.18.1
+ARG NODE_VERSION=18.8.0
 
 FROM node:${NODE_VERSION}-alpine
 
 # Use production node environment by default.
 ENV NODE_ENV production
-
 
 WORKDIR /usr/src/app
 
@@ -30,7 +29,7 @@ USER node
 COPY . .
 
 # Expose the port that the application listens on.
-EXPOSE 5000
+EXPOSE 9000
 
 # Run the application.
 CMD npm start
