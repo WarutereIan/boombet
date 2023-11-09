@@ -47,6 +47,8 @@ export const checkDailyEvents = () => {
           _event.lineups = _lineups;
 
           await _event.save();
+
+          setTimeout(() => {}, 1000);
         }
       }
 

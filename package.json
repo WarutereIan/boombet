@@ -24,6 +24,7 @@
     "@types/helmet": "^4.0.0",
     "@types/hpp": "^0.2.2",
     "@types/ws": "^8.5.8",
+    "@types/jsonwebtoken": "^9.0.5",
     "axios": "^1.4.0",
     "bcrypt": "^5.1.0",
     "cluster": "^0.7.7",
