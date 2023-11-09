@@ -33,23 +33,23 @@ export const checkDailyEvents = () => {
       let events: any = res.data.data;
 
       for (const event of events) {
-        let _event;
+        setTimeout(async () => {
+          let _event;
 
-        if (event.sport_id == 1 && !(await Event.exists({ id: event.id }))) {
-          _event = await Event.create(event);
+          if (event.sport_id == 1 && !(await Event.exists({ id: event.id }))) {
+            _event = await Event.create(event);
 
-          let _lineups = await getEventLineups(event.id);
+            let _lineups = await getEventLineups(event.id);
 
-          let _markets = await getEventmarkets(event.id);
+            let _markets = await getEventmarkets(event.id);
 
-          _event.markets = _markets;
+            _event.markets = _markets;
 
-          _event.lineups = _lineups;
+            _event.lineups = _lineups;
 
-          await _event.save();
-
-          setTimeout(() => {}, 1000);
-        }
+            await _event.save();
+          }
+        }, 200);
       }
 
       console.log(`created events for ${dateToday} in db`);

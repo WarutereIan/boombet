@@ -90,16 +90,16 @@ export const checkLiveEvents = async () => {
           );
         }
       } else {
-        let incidents = await getEventIncidents(match.id);
-        let stats = await getEventStats(match.id);
+        setTimeout(async () => {
+          let incidents = await getEventIncidents(match.id);
+          let stats = await getEventStats(match.id);
 
-        match.incidents = incidents;
-        match.stats = stats;
-        await match.save();
+          match.incidents = incidents;
+          match.stats = stats;
+          await match.save();
 
-        trueLiveEvents.push(match);
-
-        setTimeout(() => {}, 500);
+          trueLiveEvents.push(match);
+        }, 200);
       }
     }
 
