@@ -9,9 +9,10 @@
 import axios from "axios";
 import { RedisClient, connectDB } from "../config/db";
 import { Event } from "../models/Event";
-import { time } from "cron";
+
 import { Publisher } from "../config/rabbitmq/publishers";
 import { config } from "../config/config";
+import { sleep } from "../../utils/sleepFunction";
 
 const options = {
   method: "GET",
@@ -24,9 +25,12 @@ const options = {
 
 export const checkLiveEvents = async () => {
   try {
+    console.log("axios request -checkLiveEvents");
     let response = await axios(options);
 
     let events = response.data.data;
+
+    //console.log("events number:", events.length());
 
     //send received data to queue
 
@@ -58,25 +62,16 @@ export const checkLiveEvents = async () => {
         console.log(`Updated event ${event_id} live status to True`);
       }
 
-      event.incidents = incidents;
+      /* event.incidents = incidents; */
 
       liveList.push(event_id);
     }
-
-    await Publisher.send(
-      {
-        exchange: "live",
-        routingKey: "live",
-      },
-      events
-    );
 
     let dbLiveMatches = await Event.find({ live: true });
 
     let trueLiveEvents: any[] = [];
 
-    for (const match of dbLiveMatches) {
-      //update event live status to false if ended
+    async function processMatch(match: any) {
       if (!liveList.includes(match.id)) {
         let falseMatch = await Event.findOne({ id: match.id }).select("live");
         if (falseMatch) {
@@ -90,17 +85,49 @@ export const checkLiveEvents = async () => {
           );
         }
       } else {
-        setTimeout(async () => {
-          let incidents = await getEventIncidents(match.id);
-          let stats = await getEventStats(match.id);
+        let incidents = await getEventIncidents(match.id);
+        let stats = await getEventStats(match.id);
 
-          match.incidents = incidents;
-          match.stats = stats;
-          await match.save();
+        match.incidents = incidents;
+        match.stats = stats;
+        await match.save();
 
-          trueLiveEvents.push(match);
-        }, 200);
+        trueLiveEvents.push(match);
+
+        return true;
       }
+    }
+
+    for (const match of dbLiveMatches) {
+      sleep(Math.random() * 1000).then(async () => {});
+
+      if (!liveList.includes(match.id)) {
+        let falseMatch = await Event.findOne({ id: match.id }).select("live");
+        if (falseMatch) {
+          falseMatch.live = false;
+
+          await falseMatch.save();
+
+          console.log(
+            `Match id ${match.id} finished and live status updated to False
+          `
+          );
+        }
+      } else {
+        for (let i = 0; i < 2; i++) {
+          await sleep(i * 1000);
+        }
+
+        let incidents = await getEventIncidents(match.id);
+        let stats = await getEventStats(match.id);
+
+        match.incidents = incidents;
+        match.stats = stats;
+        await match.save();
+
+        trueLiveEvents.push(match);
+      }
+      //update event live status to false if ended
     }
 
     //insert into cache list of live matches
@@ -114,49 +141,69 @@ export const checkLiveEvents = async () => {
       })
     );
 
+    await Publisher.send(
+      {
+        exchange: "live",
+        routingKey: "live",
+      },
+      trueLiveEvents
+    );
+
     console.log(`finished updating live matches
      `);
-  } catch (err) {
-    console.error(err);
+  } catch (err: any) {
+    console.error(`check live events error`, err);
   }
 
   //also store live matches stats in cache after this update, as array so users get them:
   //refresh this after every get request for live matches
 };
 
-const getEventIncidents = async (eventId: string) => {
-  const options = {
-    method: "GET",
-    url: `https://sportscore1.p.rapidapi.com/events/${eventId}/incidents`,
-    headers: {
-      "X-RapidAPI-Key": config.RAPID_API_KEY,
-      "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
-    },
-  };
+async function getEventIncidents(eventId: string) {
+  try {
+    console.log("axios request - getEventIncidents");
 
-  const response = await axios.request(options);
+    const options = {
+      method: "GET",
+      url: `https://sportscore1.p.rapidapi.com/events/${eventId}/incidents`,
+      headers: {
+        "X-RapidAPI-Key": config.RAPID_API_KEY,
+        "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
+      },
+    };
 
-  const incidents = response.data.data;
+    const response = await axios.request(options);
 
-  return incidents;
-};
+    const incidents = response.data.data;
 
-const getEventStats = async (eventId: string) => {
-  const options = {
-    method: "GET",
-    url: `https://sportscore1.p.rapidapi.com/events/${eventId}/statistics`,
-    headers: {
-      "X-RapidAPI-Key": config.RAPID_API_KEY,
-      "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
-    },
-  };
+    return incidents;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
-  let response = await axios.request(options);
+async function getEventStats(eventId: string) {
+  try {
+    console.log("axios request -getEventStats");
 
-  let stats = response.data.data;
+    const options = {
+      method: "GET",
+      url: `https://sportscore1.p.rapidapi.com/events/${eventId}/statistics`,
+      headers: {
+        "X-RapidAPI-Key": config.RAPID_API_KEY,
+        "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
+      },
+    };
 
-  return stats;
-};
+    let response = await axios.request(options);
+
+    let stats = response.data.data;
+
+    return stats;
+  } catch (error) {
+    console.error(error);
+  }
+}
 //for each event: user should be able to subscribe/view the events details?: ws
 
 //push live events' data to queue, have consumer stream to clients

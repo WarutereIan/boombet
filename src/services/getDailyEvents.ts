@@ -3,6 +3,7 @@ import { Event } from "../models/Event";
 import { connectDB } from "../config/db";
 import { config } from "../config/config";
 import { response } from "express";
+import { sleep } from "../../utils/sleepFunction";
 
 const date = new Date();
 
@@ -29,11 +30,12 @@ export const checkDailyEvents = () => {
   };
 
   try {
+    console.log("axios request -checkDailyEvents");
     axios.request(options).then(async (res) => {
       let events: any = res.data.data;
 
       for (const event of events) {
-        setTimeout(async () => {
+        sleep(1000).then(async () => {
           let _event;
 
           if (event.sport_id == 1 && !(await Event.exists({ id: event.id }))) {
@@ -49,7 +51,7 @@ export const checkDailyEvents = () => {
 
             await _event.save();
           }
-        }, 200);
+        });
       }
 
       console.log(`created events for ${dateToday} in db`);
@@ -60,6 +62,7 @@ export const checkDailyEvents = () => {
 };
 
 const getEventmarkets = async (eventId: string) => {
+  console.log("axios request - getEventMarkets");
   const options = {
     method: "GET",
     url: `https://sportscore1.p.rapidapi.com/events/${eventId}/markets`,
@@ -69,6 +72,8 @@ const getEventmarkets = async (eventId: string) => {
     },
   };
 
+  await sleep(500);
+
   const response = await axios.request(options);
 
   const markets = response.data.data;
@@ -77,6 +82,7 @@ const getEventmarkets = async (eventId: string) => {
 };
 
 const getEventLineups = async (eventId: string) => {
+  console.log("axios request -getEventLineups");
   const options = {
     method: "GET",
     url: `https://sportscore1.p.rapidapi.com/events/${eventId}/lineups`,
@@ -85,6 +91,8 @@ const getEventLineups = async (eventId: string) => {
       "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
     },
   };
+
+  await sleep(500);
 
   const response = await axios.request(options);
 
