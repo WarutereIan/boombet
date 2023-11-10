@@ -71,11 +71,7 @@ export const checkLiveEvents = async () => {
 
     let trueLiveEvents: any[] = [];
 
-    
-
     for (const match of dbLiveMatches) {
-      sleep(Math.random() * 1000).then(async () => {});
-
       if (!liveList.includes(match.id)) {
         let falseMatch = await Event.findOne({ id: match.id }).select("live");
         if (falseMatch) {
@@ -89,7 +85,7 @@ export const checkLiveEvents = async () => {
           );
         }
       } else {
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < 1; i++) {
           await sleep(i * 1000);
         }
 

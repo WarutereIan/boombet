@@ -35,7 +35,7 @@ export const checkDailyEvents = () => {
       let events: any = res.data.data;
 
       for (const event of events) {
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 3; i++) {
           await sleep(i * 1000);
         }
 
@@ -64,41 +64,49 @@ export const checkDailyEvents = () => {
 };
 
 const getEventmarkets = async (eventId: string) => {
-  console.log("axios request - getEventMarkets");
-  const options = {
-    method: "GET",
-    url: `https://sportscore1.p.rapidapi.com/events/${eventId}/markets`,
-    headers: {
-      "X-RapidAPI-Key": config.RAPID_API_KEY,
-      "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
-    },
-  };
+  try {
+    console.log("axios request - getEventMarkets");
+    const options = {
+      method: "GET",
+      url: `https://sportscore1.p.rapidapi.com/events/${eventId}/markets`,
+      headers: {
+        "X-RapidAPI-Key": config.RAPID_API_KEY,
+        "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
+      },
+    };
 
-  await sleep(500);
+    await sleep(500);
 
-  const response = await axios.request(options);
+    const response = await axios.request(options);
 
-  const markets = response.data.data;
+    const markets = response.data.data;
 
-  return markets;
+    return markets;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const getEventLineups = async (eventId: string) => {
-  console.log("axios request -getEventLineups");
-  const options = {
-    method: "GET",
-    url: `https://sportscore1.p.rapidapi.com/events/${eventId}/lineups`,
-    headers: {
-      "X-RapidAPI-Key": config.RAPID_API_KEY,
-      "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
-    },
-  };
+  try {
+    console.log("axios request -getEventLineups");
+    const options = {
+      method: "GET",
+      url: `https://sportscore1.p.rapidapi.com/events/${eventId}/lineups`,
+      headers: {
+        "X-RapidAPI-Key": config.RAPID_API_KEY,
+        "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
+      },
+    };
 
-  await sleep(500);
+    await sleep(500);
 
-  const response = await axios.request(options);
+    const response = await axios.request(options);
 
-  const lineups = response.data.data;
+    const lineups = response.data.data;
 
-  return lineups;
+    return lineups;
+  } catch (error) {
+    console.error(error);
+  }
 };

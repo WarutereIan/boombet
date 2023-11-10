@@ -13,6 +13,7 @@ import { checkDailyEvents } from "./services/getDailyEvents";
 import { createBookies } from "./scripts/createBookies";
 import { storeCacheValues } from "./config/cacheValues";
 import { getLeagues } from "./services/getLeagues";
+import { checkDailyEventsCron } from "./cronJobs/checkDailyEvents";
 
 let db: any;
 
@@ -41,7 +42,8 @@ httpServer.listen(config.PORT || 9000, () => {
 });
 
 startStreamingServer();
-checkDailyEvents();
+//checkDailyEvents();
+checkDailyEventsCron.start();
 checkLiveEventsCron.start();
 
 //createTeams().then();
