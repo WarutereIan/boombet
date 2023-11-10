@@ -71,32 +71,7 @@ export const checkLiveEvents = async () => {
 
     let trueLiveEvents: any[] = [];
 
-    async function processMatch(match: any) {
-      if (!liveList.includes(match.id)) {
-        let falseMatch = await Event.findOne({ id: match.id }).select("live");
-        if (falseMatch) {
-          falseMatch.live = false;
-
-          await falseMatch.save();
-
-          console.log(
-            `Match id ${match.id} finished and live status updated to False
-          `
-          );
-        }
-      } else {
-        let incidents = await getEventIncidents(match.id);
-        let stats = await getEventStats(match.id);
-
-        match.incidents = incidents;
-        match.stats = stats;
-        await match.save();
-
-        trueLiveEvents.push(match);
-
-        return true;
-      }
-    }
+    
 
     for (const match of dbLiveMatches) {
       sleep(Math.random() * 1000).then(async () => {});
