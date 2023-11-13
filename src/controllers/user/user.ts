@@ -54,10 +54,10 @@ export class User {
       return res.status(400).json(_errors);
     }
 
-    let { teamName } = req.body;
+    let { team_id } = req.body;
 
     try {
-      let team = await Team.findOne({ name: teamName });
+      let team = await Team.findOne({ id: team_id });
       //will need to make seacrh case insensitive
       if (team) {
         return res.status(200).json({ success: true, team });
