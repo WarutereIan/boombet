@@ -360,7 +360,7 @@ export const uploadClub = async (req: Request, res: Response) => {
   try {
     let _club = await Team.create(club);
 
-    return res.status(200).json({ success: true, data: club });
+    return res.status(200).json({ success: true, data: _club });
   } catch (error: any) {
     console.error(error.message);
     return res.status(500).send("Internal server error");
@@ -393,3 +393,45 @@ export const uploadLeague = async (req: Request, res: Response) => {
     return res.status(500).send("Internal server error");
   }
 };
+
+export const deletePrediction = async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    let _errors = errors.array().map((error) => {
+      return {
+        msg: error.msg,
+        field: error.param,
+        success: false,
+      };
+    })[0];
+    return res.status(400).json(_errors);
+  }
+
+  let { eventId } = req.body;
+
+  try {
+    let _event = await Event.findOne({ id: eventId });
+
+    if (!_event)
+      return res.status(404).json({
+        success: false,
+        data: "Event not found",
+      });
+
+    _event.admin_prediction = [];
+    _event.prediction_changed = true;
+
+    let event = await _event.save();
+
+    return res.status(200).json({
+      success: true,
+      data: { msg: "Prediction changed successfully", event },
+    });
+  } catch (error: any) {
+    console.error(error.message);
+    return res.status(500).send("Internal server error");
+  }
+};
+

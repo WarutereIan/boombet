@@ -20,11 +20,27 @@ export const startStreamingServer = () => {
       try {
         console.log("number of live matches:", msg.body.length);
 
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(msg.body), { binary: false });
-          }
-        });
+        let response = {
+          success: true,
+          data: {
+            number_of_matches: msg.body.length,
+            matches: msg.body,
+          },
+        };
+
+        if (msg.body.length == 0) {
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(response), { binary: false });
+            }
+          });
+        } else {
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(response), { binary: false });
+            }
+          });
+        }
       } catch (err) {
         console.error(err);
       }

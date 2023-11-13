@@ -35,4 +35,6 @@ const TeamSchema = new Schema<ITeam>({
   flag: String,
 });
 
+TeamSchema.index({ name: "text", slug: "text" });
+
 export const Team = model<ITeam>("Team", TeamSchema);

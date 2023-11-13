@@ -57,4 +57,6 @@ const LeagueSchema = new Schema<ILeague>({
   most_count: Number,
 });
 
+LeagueSchema.index({ slug: "text", name_translations: "text" });
+
 export const League = model<ILeague>("League", LeagueSchema);

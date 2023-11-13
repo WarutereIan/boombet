@@ -19,7 +19,7 @@ let year = date.getFullYear();
 
 let dateToday = `${year}-${month}-${day}`;
 
-export const checkDailyEvents = () => {
+export const checkDailyEvents = async () => {
   const options = {
     method: "GET",
     url: `https://sportscore1.p.rapidapi.com/sports/1/events/date/${dateToday}`,
@@ -31,35 +31,48 @@ export const checkDailyEvents = () => {
 
   try {
     console.log("axios request -checkDailyEvents");
-    axios.request(options).then(async (res) => {
-      let events: any = res.data.data;
+    let res: any = await axios(options);
 
-      for (const event of events) {
-        for (let i = 0; i < 3; i++) {
-          await sleep(i * 1000);
-        }
+    let events: any = res.data.data;
 
-        let _event;
-
-        if (event.sport_id == 1 && !(await Event.exists({ id: event.id }))) {
-          _event = await Event.create(event);
-
-          let _lineups = await getEventLineups(event.id);
-
-          let _markets = await getEventmarkets(event.id);
-
-          _event.markets = _markets;
-
-          _event.lineups = _lineups;
-
-          await _event.save();
-        }
+    for (const event of events) {
+      for (let i = 0; i < 2; i++) {
+        await sleep(i * 1000);
       }
 
-      console.log(`created events for ${dateToday} in db`);
-    });
+      let _event;
+
+      let start_at: any = event.start_at;
+
+      let date = start_at.slice(0, 10);
+
+      event.date = date;
+
+      if (event.sport_id == 1 && !(await Event.exists({ id: event.id }))) {
+        _event = await Event.create(event);
+
+        let _lineups: [] = [];
+
+        let _markets: [] = [];
+
+        getEventLineups(event.id).then((lineups) => {
+          _lineups = lineups;
+          getEventmarkets(event.id).then((markets) => {
+            _markets = markets;
+          });
+        });
+
+        _event.markets = _markets;
+
+        _event.lineups = _lineups;
+
+        await _event.save();
+      }
+    }
+
+    console.log(`created events for ${dateToday} in db`);
   } catch (err: any) {
-    console.error(err.data);
+    console.error(err);
   }
 };
 

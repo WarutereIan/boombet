@@ -103,6 +103,15 @@ const EventSchema = new Schema<IEvent>({
     type: [],
     default: [],
   },
+  admin_prediction: {
+    type: [],
+    default: [],
+  },
+  date: {
+    type: String,
+  },
 });
+
+EventSchema.index({ slug: "text", name: "text", start_at: "text" });
 
 export const Event = model<IEvent>("Event", EventSchema);

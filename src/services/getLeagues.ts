@@ -11,6 +11,8 @@ export const getLeagues = async () => {
     let start = Date.now();
 
     while (from != null) {
+
+      
       const options = {
         method: "GET",
         url: "https://sportscore1.p.rapidapi.com/leagues",

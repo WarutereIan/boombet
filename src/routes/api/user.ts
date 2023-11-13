@@ -15,4 +15,12 @@ router.get("/getBookies", User.getBookies);
 
 router.post("/convertBookingCode", User.convertBetCode);
 
+router.post("/searchTeam", User.searchTeam);
+
+router.post("/searchLeague", User.searchLeague);
+
+router.post("/events-by-date", User.searchEventsByDate);
+
+router.post("/get-event-by-date-and-league", User.searchEventsByDateAndLeague);
+
 module.exports = router;

@@ -77,5 +77,7 @@ export interface IEvent {
   markets: [];
   lineups: [];
   incidents: [];
-  stats: []
+  stats: [];
+  admin_prediction: [];
+  date: string;
 }

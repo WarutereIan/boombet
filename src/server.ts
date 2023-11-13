@@ -42,11 +42,11 @@ httpServer.listen(config.PORT || 9000, () => {
 });
 
 startStreamingServer();
-//checkDailyEvents();
+checkDailyEvents();
 checkDailyEventsCron.start();
 checkLiveEventsCron.start();
 
 //createTeams().then();
 storeCacheValues().then();
 
-getLeagues().then();
+//getLeagues().then();

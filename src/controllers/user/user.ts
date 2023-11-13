@@ -221,4 +221,143 @@ export class User {
       return res.status(500).send("Internal server error");
     }
   }
+
+  static async searchTeam(req: Request, res: Response) {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      let _errors = errors.array().map((error) => {
+        return {
+          msg: error.msg,
+          field: error.param,
+          success: false,
+        };
+      })[0];
+      return res.status(400).json(_errors);
+    }
+
+    let { teamName } = req.body;
+
+    try {
+      let team = await Team.find({ $text: { $search: teamName } })
+        .select("id slug name")
+        .limit(10);
+      //will need to make seacrh case insensitive
+      if (team) {
+        return res.status(200).json({ success: true, team });
+      } else {
+        return res.status(200).json({ success: false, msg: "Team not found" });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
+  }
+
+  static async searchLeague(req: Request, res: Response) {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      let _errors = errors.array().map((error) => {
+        return {
+          msg: error.msg,
+          field: error.param,
+          success: false,
+        };
+      })[0];
+      return res.status(400).json(_errors);
+    }
+
+    let { leagueName } = req.body;
+
+    try {
+      let league = await League.find({ $text: { $search: leagueName } })
+        .select("id slug name_translations")
+        .limit(10);
+      //will need to make seacrh case insensitive
+      if (league) {
+        return res.status(200).json({ success: true, league });
+      } else {
+        return res
+          .status(200)
+          .json({ success: false, msg: "league not found" });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
+  }
+
+  static async searchEventsByDate(req: Request, res: Response) {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      let _errors = errors.array().map((error) => {
+        return {
+          msg: error.msg,
+          field: error.param,
+          success: false,
+        };
+      })[0];
+      return res.status(400).json(_errors);
+    }
+
+    let { date } = req.body;
+
+    try {
+      let events = await Event.find({ date: date }).select(
+        "id slug name start_at league_id"
+      );
+      //will need to make seacrh case insensitive
+      if (events) {
+        return res.status(200).json({ success: true, events });
+      } else {
+        return res
+          .status(200)
+          .json({ success: false, msg: "Events not found" });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
+  }
+
+  static async searchEventsByDateAndLeague(req: Request, res: Response) {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      let _errors = errors.array().map((error) => {
+        return {
+          msg: error.msg,
+          field: error.param,
+          success: false,
+        };
+      })[0];
+      return res.status(400).json(_errors);
+    }
+
+    let { date, league_id } = req.body;
+
+    try {
+      let events = await Event.find({
+        league_id: league_id,
+        date: date,
+      }).select("id slug name");
+      //will need to make seacrh case insensitive
+      if (events) {
+        return res.status(200).json({ success: true, events });
+      } else {
+        return res
+          .status(200)
+          .json({ success: false, msg: "events not found" });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
+  }
 }

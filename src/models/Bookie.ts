@@ -26,4 +26,6 @@ const BookieSchema = new Schema<IBookie>({
   },
 });
 
+BookieSchema.index({ "$**": "text" });
+
 export const Bookie = model<IBookie>("Bookie", BookieSchema);
