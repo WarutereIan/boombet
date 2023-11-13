@@ -309,7 +309,7 @@ export class User {
 
     try {
       let events = await Event.find({ date: date }).select(
-        "id slug name start_at league_id"
+        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction"
       );
       //will need to make seacrh case insensitive
       if (events) {
@@ -346,7 +346,9 @@ export class User {
       let events = await Event.find({
         league_id: league_id,
         date: date,
-      }).select("id slug name");
+      }).select(
+        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction"
+      );
       //will need to make seacrh case insensitive
       if (events) {
         return res.status(200).json({ success: true, events });

@@ -325,10 +325,12 @@ export const updatePrediction = async (req: Request, res: Response) => {
         data: "Event not found",
       });
 
-    _event.main_odds = prediction;
+    _event.admin_prediction = prediction;
     _event.prediction_changed = true;
 
-    let event = await _event.save();
+    await _event.save();
+
+    let event = await Event.findOne({ id: eventId });
 
     return res.status(200).json({
       success: true,
@@ -434,4 +436,3 @@ export const deletePrediction = async (req: Request, res: Response) => {
     return res.status(500).send("Internal server error");
   }
 };
-
