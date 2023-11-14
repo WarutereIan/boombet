@@ -110,6 +110,9 @@ const EventSchema = new Schema<IEvent>({
   date: {
     type: String,
   },
+  time_details: {
+    type: {},
+  },
 });
 
 EventSchema.index({ slug: "text", name: "text", start_at: "text" });

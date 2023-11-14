@@ -39,10 +39,12 @@ export const checkLiveEvents = async () => {
     for (const event of events) {
       let event_id = event.id;
 
+      console.log(event.time_details);
+
       let storedEvent = await Event.findOne({ id: event_id });
 
-      //update event live status to true
-      if (storedEvent && !storedEvent.live) {
+      //update event live status
+      if (storedEvent) {
         storedEvent.status = event.status;
         storedEvent.status_more = event.status_more;
         storedEvent.winner_code = event.winner_code;
@@ -51,11 +53,14 @@ export const checkLiveEvents = async () => {
         storedEvent.lasted_period = event.lasted_period;
         storedEvent.main_odds = event.main_odds;
         storedEvent.live = true;
+        storedEvent.home_score = event.home_score;
+        storedEvent.away_score = event.away_score;
+        storedEvent.time_details = event.time_details;
 
         //TBD: Whether to use socket subscriptions for the matches: NO, no need
         await storedEvent.save();
 
-        console.log(`Updated event ${event_id} live status to True`);
+        console.log(`Updated event ${event_id} live stats `);
       }
 
       /* event.incidents = incidents; */
