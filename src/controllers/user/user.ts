@@ -307,12 +307,27 @@ export class User {
 
     let { date } = req.body;
 
+    let prediction_changed: any[] = [];
+    let prediction_not_changed: any[] = [];
+    let events: any = {};
+
     try {
-      let events = await Event.find({ date: date }).select(
+      let _events: any[] = await Event.find({ date: date, live: false }).select(
         "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction"
       );
       //will need to make seacrh case insensitive
-      if (events) {
+      if (_events) {
+        for (const match of _events) {
+          if (match.prediction_changed) {
+            prediction_changed.push(match);
+          } else {
+            prediction_not_changed.push(match);
+          }
+        }
+
+        events.prediction_changed = prediction_changed;
+        events.prediction_not_changed = prediction_not_changed;
+
         return res.status(200).json({ success: true, events });
       } else {
         return res
@@ -342,15 +357,30 @@ export class User {
 
     let { date, league_id } = req.body;
 
+    let prediction_changed: any[] = [];
+    let prediction_not_changed: any[] = [];
+    let events: any = {};
+
     try {
-      let events = await Event.find({
+      let _events = await Event.find({
         league_id: league_id,
         date: date,
       }).select(
         "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction"
       );
       //will need to make seacrh case insensitive
-      if (events) {
+      if (_events) {
+        for (const match of _events) {
+          if (match.prediction_changed) {
+            prediction_changed.push(match);
+          } else {
+            prediction_not_changed.push(match);
+          }
+        }
+
+        events.prediction_changed = prediction_changed;
+        events.prediction_not_changed = prediction_not_changed;
+
         return res.status(200).json({ success: true, events });
       } else {
         return res
@@ -359,6 +389,37 @@ export class User {
       }
     } catch (err) {
       console.error(err);
+      return res.status(500).send("Internal server error");
+    }
+  }
+
+  static async getAdminBookies(req: Request, res: Response) {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      let _errors = errors.array().map((error) => {
+        return {
+          msg: error.msg,
+          field: error.param,
+          success: false,
+        };
+      })[0];
+      return res.status(400).json(_errors);
+    }
+
+    try {
+      let _adminBookies: any = await RedisClient.get("adminBookies");
+
+      if (_adminBookies || _adminBookies == null) {
+        let adminBookies = JSON.parse(_adminBookies);
+
+        return res.status(200).json({ success: true, adminBookies });
+      } else {
+        throw new Error("Could not  fetch admin bookies from cache");
+      }
+    } catch (error) {
+      console.error(error);
       return res.status(500).send("Internal server error");
     }
   }

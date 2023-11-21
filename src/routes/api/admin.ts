@@ -47,15 +47,18 @@ router.post(
   ],
   signUp
 );
-
-router.post(
-  "/login",
-  [
-    check("phone_number", "Phone Number is required").not().isEmpty(),
-    check("password", "Password is required").not().isEmpty(),
-  ],
-  login
-);
+check("email")
+  .isEmail()
+  .withMessage("Email format is invalid")
+  .normalizeEmail(),
+  router.post(
+    "/login",
+    [
+      //check("phone_number", "Phone Number is required").not().isEmpty(),
+      check("password", "Password is required").not().isEmpty(),
+    ],
+    login
+  );
 
 router.put("/updateBookie", validateToken, updateBookie);
 

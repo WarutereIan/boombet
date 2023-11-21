@@ -30,6 +30,8 @@ export const checkLiveEvents = async () => {
 
     let events = response.data.data;
 
+    let number_of_matches = 0;
+
     //console.log("events number:", events.length());
 
     //send received data to queue
@@ -38,8 +40,6 @@ export const checkLiveEvents = async () => {
 
     for (const event of events) {
       let event_id = event.id;
-
-      console.log(event.time_details);
 
       let storedEvent = await Event.findOne({ id: event_id });
 
@@ -59,8 +59,6 @@ export const checkLiveEvents = async () => {
 
         //TBD: Whether to use socket subscriptions for the matches: NO, no need
         await storedEvent.save();
-
-        console.log(`Updated event ${event_id} live stats `);
       }
 
       /* event.incidents = incidents; */
@@ -70,9 +68,13 @@ export const checkLiveEvents = async () => {
 
     let dbLiveMatches = await Event.find({ live: true });
 
-    let trueLiveEvents: any[] = [];
+    let trueLiveEvents: any = {};
+
+    let prediction_changed: any[] = [];
+    let prediction_not_changed: any[] = [];
 
     for (const match of dbLiveMatches) {
+      //update event live status to false if ended
       if (!liveList.includes(match.id)) {
         let falseMatch = await Event.findOne({ id: match.id }).select("live");
         if (falseMatch) {
@@ -87,7 +89,7 @@ export const checkLiveEvents = async () => {
         }
       } else {
         for (let i = 0; i < 2; i++) {
-          await sleep(i * 1500);
+          await sleep(i * 200);
         }
 
         match.incidents = await getEventIncidents(match.id);
@@ -95,11 +97,21 @@ export const checkLiveEvents = async () => {
 
         await match.save();
 
-        trueLiveEvents.push(match);
+        if (match.prediction_changed) {
+          prediction_changed.push(match);
+          number_of_matches++;
+        } else {
+          prediction_not_changed.push(match);
+          number_of_matches++;
+        }
       }
-      //update event live status to false if ended
+
+      //sort true live events into this with admin predictions and those without
+      //odds_modified, and odds_not_modified
     }
 
+    trueLiveEvents.prediction_changed = prediction_changed;
+    trueLiveEvents.prediction_not_changed = prediction_not_changed;
     //insert into cache list of live matches
     //users will fetch list of live matches from cache
     //will need to define a schema with only the relevant details at some point
@@ -118,6 +130,8 @@ export const checkLiveEvents = async () => {
       },
       trueLiveEvents
     );
+
+    console.log(`number of live matches: ${number_of_matches}`);
 
     console.log(`finished updating live matches
      `);
@@ -177,5 +191,3 @@ async function getEventStats(eventId: string) {
 //for each event: user should be able to subscribe/view the events details?: ws
 
 //push live events' data to queue, have consumer stream to clients
-
-//

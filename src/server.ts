@@ -14,6 +14,8 @@ import { createBookies } from "./scripts/createBookies";
 import { storeCacheValues } from "./config/cacheValues";
 import { getLeagues } from "./services/getLeagues";
 import { checkDailyEventsCron } from "./cronJobs/checkDailyEvents";
+import { checkWeeklyEventsCron } from "./cronJobs/checkWeeklyEvents";
+import { checkWeeklyEvents } from "./services/getWeeklyEvents";
 
 let db: any;
 
@@ -43,6 +45,8 @@ httpServer.listen(config.PORT || 9000, () => {
 
 startStreamingServer();
 checkDailyEvents();
+checkWeeklyEvents();
+checkWeeklyEventsCron.start();
 checkDailyEventsCron.start();
 checkLiveEventsCron.start();
 

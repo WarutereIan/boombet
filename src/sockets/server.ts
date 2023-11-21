@@ -18,8 +18,6 @@ export const startStreamingServer = () => {
     },
     async (msg: any) => {
       try {
-        console.log("number of live matches:", msg.body.length);
-
         let response = {
           success: true,
           data: {

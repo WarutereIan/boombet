@@ -5,11 +5,12 @@ import { Password } from "../../helpers/password";
 
 import { sign } from "jsonwebtoken";
 import { config } from "../../config/config";
-import { Bookie } from "../../models/Bookie";
 
 import { Event } from "../../models/Event";
 import { Team } from "../../models/Team";
 import { League } from "../../models/League";
+import { AdminBookie } from "../../models/AdminBookie";
+import { RedisClient } from "../../config/db";
 
 export const signUp = async (req: Request, res: Response) => {
   const errors = validationResult(req);
@@ -199,12 +200,20 @@ export const updateBookie = async (req: Request, res: Response) => {
     return res.status(400).json(_errors);
   }
 
-  let { bookie_code, name, img, referral_link, bookie, timestamp } = req.body;
+  let {
+    bookie_code,
+    name,
+    img,
+    referral_link,
+    bookie,
+    timestamp,
+    personal_message,
+  } = req.body;
 
   //admin selects fields to update, the rest remain unchanged
 
   try {
-    let event = await Bookie.findOne({ bookie: bookie });
+    let event = await AdminBookie.findOne({ bookie: bookie });
     if (!event)
       return res.status(404).json({
         success: false,
@@ -216,10 +225,15 @@ export const updateBookie = async (req: Request, res: Response) => {
     event.img = img;
     event.referral_link = referral_link;
     event.timestamp = timestamp;
+    event.personal_message = personal_message;
 
     await event.save();
 
-    let updatedBookie = await Bookie.findOne({ bookie: bookie });
+    let updatedBookie = await AdminBookie.findOne({ bookie: bookie });
+
+    let adminBookies = await AdminBookie.find();
+
+    await RedisClient.set("adminBookies", JSON.stringify(adminBookies));
 
     return res.status(200).json({ success: true, data: updatedBookie });
   } catch (error: any) {
@@ -243,19 +257,37 @@ export const addBookie = async (req: Request, res: Response) => {
     return res.status(400).json(_errors);
   }
 
-  let { bookie_code, name, img, referral_link, bookie, timestamp } = req.body;
+  let {
+    bookie_code,
+    name,
+    img,
+    referral_link,
+    bookie,
+    timestamp,
+    personal_message,
+  } = req.body;
 
   try {
-    let event = await Bookie.create({
+    if (await AdminBookie.exists({ bookie_code: bookie_code }))
+      return res
+        .status(500)
+        .json({ success: false, msg: "Bookie with given code already exists" });
+
+    let adminBookie = await AdminBookie.create({
       bookie: bookie,
       bookie_code: bookie_code,
       name: name,
       img: img,
       referral_link: referral_link,
       timestamp: timestamp,
+      personal_message: personal_message,
     });
 
-    return res.status(200).json({ success: true, data: event });
+    let adminBookies = await AdminBookie.find();
+
+    await RedisClient.set("adminBookies", JSON.stringify(adminBookies));
+
+    return res.status(200).json({ success: true, data: adminBookie });
   } catch (error: any) {
     console.error(error.message);
     return res.status(500).send("Internal server error");
@@ -277,10 +309,10 @@ export const deleteBookie = async (req: Request, res: Response) => {
     return res.status(400).json(_errors);
   }
 
-  let { bookie } = req.body;
+  let { bookie_code } = req.body;
 
   try {
-    let event = await Bookie.findOne({ bookie: bookie });
+    let event = await AdminBookie.findOne({ bookie_code: bookie_code });
 
     if (!event)
       return res.status(404).json({
@@ -292,7 +324,10 @@ export const deleteBookie = async (req: Request, res: Response) => {
 
     return res
       .status(200)
-      .json({ success: true, data: `Bookie ${bookie} deleted successfully` });
+      .json({
+        success: true,
+        data: `Bookie ${bookie_code} deleted successfully`,
+      });
   } catch (error: any) {
     console.error(error.message);
     return res.status(500).send("Internal server error");
