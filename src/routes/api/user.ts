@@ -25,4 +25,6 @@ router.post("/get-event-by-date-and-league", User.searchEventsByDateAndLeague);
 
 router.get("/get-admin-bookies", User.getAdminBookies);
 
+router.post("/getEventLineups", User.getEventLineups)
+
 module.exports = router;

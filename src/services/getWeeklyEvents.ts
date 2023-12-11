@@ -9,9 +9,9 @@ const date = new Date();
 
 let day: any = date.getDate();
 
-if (day / 10 < 1) {
+/* if (day / 10 < 1) {
   day = `0${day}`;
-}
+} */
 let month = date.getUTCMonth() + 1;
 let year = date.getFullYear();
 
@@ -20,13 +20,13 @@ let year = date.getFullYear();
 export const checkWeeklyEvents = async () => {
   if (day > 31) day = 0;
   for (let i = 0; i < 7; i++) {
-    let dateToday = `${year}-${month}-${day + i}`;
+    let dateToday = `${year}-${month}-${Number(day) + i}`;
+
+    if((Number(day) + i)/10 < 1) dateToday = `${year}-${month}-0${Number(day) + i}`;
     console.log("axios request -checkWeeklyEvents, current date: ", dateToday);
     const options = {
       method: "GET",
-      url: `https://sportscore1.p.rapidapi.com/sports/1/events/date/${year}-${month}-${
-        day + i
-      }`,
+      url: `https://sportscore1.p.rapidapi.com/sports/1/events/date/${dateToday}`,
       headers: {
         "X-RapidAPI-Key": config.RAPID_API_KEY,
         "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",

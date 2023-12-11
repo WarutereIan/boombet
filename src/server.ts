@@ -46,8 +46,8 @@ httpServer.listen(config.PORT || 9000, () => {
 startStreamingServer();
 checkDailyEvents();
 checkWeeklyEvents();
-checkWeeklyEventsCron.start();
-checkDailyEventsCron.start();
+checkWeeklyEventsCron();
+checkDailyEventsCron();
 checkLiveEventsCron.start();
 
 //createTeams().then();

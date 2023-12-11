@@ -68,4 +68,5 @@ export interface IEvent {
   stats: [];
   admin_prediction: [];
   date: string;
+  event_lineups_checkCount: number;
 }

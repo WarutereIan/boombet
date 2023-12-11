@@ -113,6 +113,10 @@ const EventSchema = new Schema<IEvent>({
   time_details: {
     type: {},
   },
+  event_lineups_checkCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 EventSchema.index({ slug: "text", name: "text", start_at: "text" });

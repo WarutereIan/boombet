@@ -62,7 +62,7 @@ export class User {
       if (team) {
         return res.status(200).json({ success: true, team });
       } else {
-        return res.status(200).json({ success: false, msg: "Team not found" });
+        return res.status(404).json({ success: false, msg: "Team not found" });
       }
     } catch (err) {
       console.error(err);
@@ -98,7 +98,7 @@ export class User {
       if (league) {
         return res.status(200).json({ success: true, league });
       } else {
-        return res.status(200).json({ success: false, msg: "Team not found" });
+        return res.status(404).json({ success: false, msg: "Team not found" });
       }
     } catch (err) {
       console.error(err);
@@ -143,7 +143,7 @@ export class User {
           return res.status(200).json({ success: true, event });
         } else {
           return res
-            .status(200)
+            .status(404)
             .json({ success: false, msg: "Event not found" });
         }
       }
@@ -247,7 +247,7 @@ export class User {
       if (team) {
         return res.status(200).json({ success: true, team });
       } else {
-        return res.status(200).json({ success: false, msg: "Team not found" });
+        return res.status(404).json({ success: false, msg: "Team not found" });
       }
     } catch (err) {
       console.error(err);
@@ -281,7 +281,7 @@ export class User {
         return res.status(200).json({ success: true, league });
       } else {
         return res
-          .status(200)
+          .status(404)
           .json({ success: false, msg: "league not found" });
       }
     } catch (err) {
@@ -311,18 +311,18 @@ export class User {
     let prediction_not_changed: any[] = [];
     let events: any = {};
 
+    console.log(date);
+
     try {
       let _events: any[] = await Event.find({ date: date, live: false }).select(
         "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction"
       );
       //will need to make seacrh case insensitive
-      if (_events) {
+      if (_events != null || undefined) {
         for (const match of _events) {
-          if (match.prediction_changed) {
-            prediction_changed.push(match);
-          } else {
-            prediction_not_changed.push(match);
-          }
+          match.prediction_changed
+            ? prediction_changed.push(match)
+            : prediction_not_changed.push(match);
         }
 
         events.prediction_changed = prediction_changed;
@@ -331,7 +331,7 @@ export class User {
         return res.status(200).json({ success: true, events });
       } else {
         return res
-          .status(200)
+          .status(404)
           .json({ success: false, msg: "Events not found" });
       }
     } catch (err) {
@@ -369,13 +369,11 @@ export class User {
         "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction"
       );
       //will need to make seacrh case insensitive
-      if (_events) {
+      if (_events != null || undefined) {
         for (const match of _events) {
-          if (match.prediction_changed) {
-            prediction_changed.push(match);
-          } else {
-            prediction_not_changed.push(match);
-          }
+          match.prediction_changed
+            ? prediction_changed.push(match)
+            : prediction_not_changed.push(match);
         }
 
         events.prediction_changed = prediction_changed;
@@ -384,7 +382,7 @@ export class User {
         return res.status(200).json({ success: true, events });
       } else {
         return res
-          .status(200)
+          .status(404)
           .json({ success: false, msg: "events not found" });
       }
     } catch (err) {
@@ -420,6 +418,42 @@ export class User {
       }
     } catch (error) {
       console.error(error);
+      return res.status(500).send("Internal server error");
+    }
+  }
+
+  static async getEventLineups(req: Request, res: Response) {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      let _errors = errors.array().map((error) => {
+        return {
+          msg: error.msg,
+          field: error.param,
+          success: false,
+        };
+      })[0];
+      return res.status(400).json(_errors);
+    }
+
+    let { event_id } = req.body;
+
+    try {
+      let event = await Event.findOne({ id: event_id });
+
+      if (event) {
+        return res.status(200).json({
+          success: true,
+          msg: event.lineups,
+        });
+      }
+      return res.status(404).json({
+        success: false,
+        msg: "Event not found",
+      });
+    } catch (err) {
+      console.error(err);
       return res.status(500).send("Internal server error");
     }
   }

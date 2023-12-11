@@ -45,6 +45,17 @@ export const checkLiveEvents = async () => {
 
       //update event live status
       if (storedEvent) {
+        if (
+          storedEvent.lineups.length == 0 &&
+          storedEvent.event_lineups_checkCount < 2
+        ) {
+          let lineups = await getEventLineups(event_id);
+
+          if (lineups != null || undefined) storedEvent.lineups = lineups;
+
+          storedEvent.event_lineups_checkCount++;
+        }
+
         storedEvent.status = event.status;
         storedEvent.status_more = event.status_more;
         storedEvent.winner_code = event.winner_code;
@@ -59,6 +70,9 @@ export const checkLiveEvents = async () => {
 
         //TBD: Whether to use socket subscriptions for the matches: NO, no need
         await storedEvent.save();
+      } else {
+        await Event.create(event);
+        console.log(`created event ${event_id}`);
       }
 
       /* event.incidents = incidents; */
@@ -184,6 +198,30 @@ async function getEventStats(eventId: string) {
     let stats = response.data.data;
 
     return stats;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function getEventLineups(eventId: string) {
+  try {
+    console.log("axios request -getEventLineups");
+    const options = {
+      method: "GET",
+      url: `https://sportscore1.p.rapidapi.com/events/${eventId}/lineups`,
+      headers: {
+        "X-RapidAPI-Key": config.RAPID_API_KEY,
+        "X-RapidAPI-Host": "sportscore1.p.rapidapi.com",
+      },
+    };
+
+    await sleep(500);
+
+    const response = await axios.request(options);
+
+    const lineups = response.data.data;
+
+    return lineups;
   } catch (error) {
     console.error(error);
   }
