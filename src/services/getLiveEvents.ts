@@ -13,6 +13,7 @@ import { Event } from "../models/Event";
 import { Publisher } from "../config/rabbitmq/publishers";
 import { config } from "../config/config";
 import { sleep } from "../../utils/sleepFunction";
+import { replaceImgUrl } from "../controllers/user/user";
 
 const options = {
   method: "GET",
@@ -108,6 +109,8 @@ export const checkLiveEvents = async () => {
 
         match.incidents = await getEventIncidents(match.id);
         match.stats = await getEventStats(match.id);
+
+        replaceImgUrl(match);
 
         await match.save();
 

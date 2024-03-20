@@ -11,6 +11,24 @@ import { Event } from "../../models/Event";
 import { config } from "../../config/config";
 import axios from "axios";
 
+export const replaceImgUrl = (match: any) => {
+  if (match.home_team.has_logo) {
+    match.home_team.logo = match.home_team.logo.replace(
+      "tipsscore.com",
+      "xscore.cc"
+    );
+  }
+  if (match.away_team.has_logo) {
+    match.away_team.logo = match.away_team.logo.replace(
+      "tipsscore.com",
+      "xscore.cc"
+    );
+  }
+  if (match.league.has_logo) {
+    match.league.logo.replace("tipsscore.com", "xscore.cc");
+  }
+};
+
 export class User {
   static async getListOfLiveMatches(req: Request, res: Response) {
     const errors = validationResult(req);
@@ -387,6 +405,8 @@ export class User {
       //will need to make seacrh case insensitive
       if (_events != null || undefined) {
         for (const match of _events) {
+          replaceImgUrl(match);
+
           match.prediction_changed
             ? prediction_changed.push(match)
             : prediction_not_changed.push(match);
