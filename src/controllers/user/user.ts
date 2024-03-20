@@ -146,6 +146,7 @@ export class User {
         let event = await Event.findOne({ id: event_id });
 
         if (event) {
+          replaceImgUrl(event);
           return res.status(200).json({ success: true, event });
         } else {
           return res
