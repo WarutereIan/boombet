@@ -47,10 +47,7 @@ router.post(
   ],
   signUp
 );
-check("email")
-  .isEmail()
-  .withMessage("Email format is invalid")
-  .normalizeEmail(),
+
   router.post(
     "/login",
     [

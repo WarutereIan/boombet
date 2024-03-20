@@ -322,12 +322,14 @@ export const deleteBookie = async (req: Request, res: Response) => {
 
     await event.deleteOne();
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        data: `Bookie ${bookie_code} deleted successfully`,
-      });
+    let adminBookies = await AdminBookie.find();
+
+    await RedisClient.set("adminBookies", JSON.stringify(adminBookies));
+
+    return res.status(200).json({
+      success: true,
+      data: `Bookie ${bookie_code} deleted successfully`,
+    });
   } catch (error: any) {
     console.error(error.message);
     return res.status(500).send("Internal server error");

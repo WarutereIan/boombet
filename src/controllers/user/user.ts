@@ -314,12 +314,28 @@ export class User {
     console.log(date);
 
     try {
-      let _events: any[] = await Event.find({ date: date, live: false }).select(
-        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction"
+      let _events: any[] = await Event.find({ date: date }).select(
+        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed"
       );
       //will need to make seacrh case insensitive
       if (_events != null || undefined) {
         for (const match of _events) {
+          if (match.home_team.has_logo) {
+            match.home_team.logo = match.home_team.logo.replace(
+              "tipsscore.com",
+              "xscore.cc"
+            );
+          }
+          if (match.away_team.has_logo) {
+            match.away_team.logo = match.away_team.logo.replace(
+              "tipsscore.com",
+              "xscore.cc"
+            );
+          }
+          if (match.league.has_logo) {
+            match.league.logo.replace("tipsscore.com", "xscore.cc");
+          }
+
           match.prediction_changed
             ? prediction_changed.push(match)
             : prediction_not_changed.push(match);
@@ -366,7 +382,7 @@ export class User {
         league_id: league_id,
         date: date,
       }).select(
-        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction"
+        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed"
       );
       //will need to make seacrh case insensitive
       if (_events != null || undefined) {
@@ -455,6 +471,48 @@ export class User {
     } catch (err) {
       console.error(err);
       return res.status(500).send("Internal server error");
+    }
+  }
+
+  static async searchEventByTeamAndDate(req: Request, res: Response) {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      let _errors = errors.array().map((error) => {
+        return {
+          msg: error.msg,
+          field: error.param,
+          success: false,
+        };
+      })[0];
+      return res.status(400).json(_errors);
+    }
+
+    let { home_team_id, away_team_id, date } = req.body;
+
+    try {
+      let _event = await Event.find({
+        home_team_id: home_team_id,
+        away_team_id: away_team_id,
+        date: date,
+      }).limit(10);
+
+      console.log(_event);
+
+      if (_event.length > 0) {
+        return res.status(200).json({
+          success: true,
+          _event,
+        });
+      } else {
+        return res.status(404).json({ success: false, msg: "Event not found" });
+      }
+    } catch (err) {
+      console.error(err);
+      return res
+        .status(500)
+        .json({ success: false, msg: "Internal server error" });
     }
   }
 }

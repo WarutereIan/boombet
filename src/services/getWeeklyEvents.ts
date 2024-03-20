@@ -7,7 +7,7 @@ import { sleep } from "../../utils/sleepFunction";
 
 const date = new Date();
 
-let day: any = date.getDate();
+let day = date.getDate();
 
 /* if (day / 10 < 1) {
   day = `0${day}`;
@@ -18,11 +18,22 @@ let year = date.getFullYear();
 //day format with which to query api for events
 
 export const checkWeeklyEvents = async () => {
-  if (day > 31) day = 0;
-  for (let i = 0; i < 7; i++) {
-    let dateToday = `${year}-${month}-${Number(day) + i}`;
+  if (Number(day) >= 31) day = 1;
+  if (month >= 12 && day == 1) {
+    month = 1;
+    year += 1;
+  }
 
-    if((Number(day) + i)/10 < 1) dateToday = `${year}-${month}-0${Number(day) + i}`;
+  for (let i = 0; i < 7; i++) {
+    let dateToday = `${year}-${month < 10 ? "0" + month : month}-${
+      Number(day) + i
+    }`;
+
+    if ((Number(day) + i) / 10 < 1)
+      dateToday = `${year}-${month < 10 ? "0" + month : month}-0${
+        Number(day) + i
+      }`;
+
     console.log("axios request -checkWeeklyEvents, current date: ", dateToday);
     const options = {
       method: "GET",

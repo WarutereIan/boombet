@@ -17,7 +17,7 @@ let year = date.getFullYear();
 
 //day format with which to query api for events
 
-let dateToday = `${year}-${month}-${day}`;
+let dateToday = `${year}-${month < 10 ? "0" + month : month}-${day}`;
 
 export const checkDailyEvents = async () => {
   const options = {
@@ -30,7 +30,7 @@ export const checkDailyEvents = async () => {
   };
 
   try {
-    console.log("axios request -checkDailyEvents");
+    console.log("axios request -checkDailyEvents-", dateToday);
     let res: any = await axios(options);
 
     let events: any = res.data.data;
