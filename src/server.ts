@@ -27,7 +27,7 @@ configureRoutes(app);
 //start server and listen for connections
 const httpServer = createServer(app);
 
-httpServer.listen(config.PORT || 9000, () => {
+httpServer.listen(config.PORT , () => {
   console.info(
     `boombet /api/v1 Server started on`,
     httpServer.address(),
