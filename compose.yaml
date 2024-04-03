@@ -16,8 +16,8 @@ services:
     image: redis
     network_mode: "host"
 
-  api:
-    image: ianengsen/boombet:apiv1
+  api1:
+    image: ianengsen/boombet:apiv4
 
     network_mode: "host"
     env_file:

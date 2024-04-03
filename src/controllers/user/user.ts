@@ -10,6 +10,7 @@ import { League } from "../../models/League";
 import { Event } from "../../models/Event";
 import { config } from "../../config/config";
 import axios from "axios";
+import { dateToday } from "../../../utils/dateToday";
 
 export const replaceImgUrl = (match: any) => {
   if (match.home_team.has_logo) {
@@ -328,40 +329,111 @@ export class User {
 
     let prediction_changed: any[] = [];
     let prediction_not_changed: any[] = [];
+    let modified_events: any;
+    let unmodified_events: any;
     let events: any = {};
 
     console.log(date);
 
     try {
-      let _events: any[] = await Event.find({ date: date }).select(
-        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed"
-      );
-      //will need to make seacrh case insensitive
-      if (_events != null || undefined) {
-        for (const match of _events) {
-          if (match.home_team.has_logo) {
-            match.home_team.logo = match.home_team.logo.replace(
-              "tipsscore.com",
-              "xscore.cc"
-            );
-          }
-          if (match.away_team.has_logo) {
-            match.away_team.logo = match.away_team.logo.replace(
-              "tipsscore.com",
-              "xscore.cc"
-            );
-          }
-          if (match.league.has_logo) {
-            match.league.logo.replace("tipsscore.com", "xscore.cc");
-          }
+      //if date is today's date, get matches from cache, otherwise get from db
+      if (date == dateToday()) {
+        let _modified_events: any = await RedisClient.get("modified_matches");
+        let _unmodified_events: any = await RedisClient.get(
+          "unmodified_matches"
+        );
+        modified_events = JSON.parse(_modified_events);
+        unmodified_events = JSON.parse(_unmodified_events);
+      } else {
+        modified_events = await Event.find({
+          date: date,
+          prediction_changed: true,
+        }).select(
+          "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed live"
+        );
 
-          match.prediction_changed
-            ? prediction_changed.push(match)
-            : prediction_not_changed.push(match);
-        }
+        unmodified_events = await Event.find({
+          date: date,
+          prediction_changed: false,
+        })
+          .select(
+            "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed live"
+          )
+          .limit(10);
+      }
 
-        events.prediction_changed = prediction_changed;
-        events.prediction_not_changed = prediction_not_changed;
+      if (modified_events || unmodified_events) {
+        events.prediction_changed = modified_events;
+        events.prediction_not_changed = unmodified_events;
+        events.count = modified_events.length + unmodified_events.length;
+
+        return res.status(200).json({ success: true, events });
+      } else {
+        return res
+          .status(404)
+          .json({ success: false, msg: "Events not found" });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
+  }
+  static async searchModifiedEventsByDate(req: Request, res: Response) {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      let _errors = errors.array().map((error) => {
+        return {
+          msg: error.msg,
+          field: error.param,
+          success: false,
+        };
+      })[0];
+      return res.status(400).json(_errors);
+    }
+
+    let { date } = req.body;
+
+    let prediction_changed: any[] = [];
+    let prediction_not_changed: any[] = [];
+    let modified_events: any;
+    let unmodified_events: any;
+    let events: any = {};
+
+    console.log(date);
+
+    try {
+      //if date is today's date, get matches from cache, otherwise get from db
+      if (date == dateToday()) {
+        let _modified_events: any = await RedisClient.get("modified_matches");
+        /* let _unmodified_events: any = await RedisClient.get(
+          "unmodified_matches"
+        ); */
+        modified_events = JSON.parse(_modified_events);
+        //unmodified_events = JSON.parse(_unmodified_events);
+      } else {
+        modified_events = await Event.find({
+          date: date,
+          prediction_changed: true,
+        }).select(
+          "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed live"
+        );
+
+        /*  unmodified_events = await Event.find({
+          date: date,
+          prediction_changed: false,
+        })
+          .select(
+            "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed live"
+          )
+          .limit(10); */
+      }
+
+      if (modified_events || unmodified_events) {
+        events.prediction_changed = modified_events;
+        //events.prediction_not_changed = unmodified_events;
+        events.count = modified_events.length; // + unmodified_events.length;
 
         return res.status(200).json({ success: true, events });
       } else {
@@ -397,15 +469,15 @@ export class User {
     let events: any = {};
 
     try {
-      let _events = await Event.find({
+      let modified_events = await Event.find({
         league_id: league_id,
         date: date,
       }).select(
-        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed"
+        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed live"
       );
       //will need to make seacrh case insensitive
-      if (_events != null || undefined) {
-        for (const match of _events) {
+      if (modified_events != null || undefined) {
+        for (const match of modified_events) {
           replaceImgUrl(match);
 
           match.prediction_changed

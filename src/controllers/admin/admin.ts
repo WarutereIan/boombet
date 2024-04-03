@@ -369,6 +369,16 @@ export const updatePrediction = async (req: Request, res: Response) => {
 
     let event = await Event.findOne({ id: eventId });
 
+    const dateToday = new Date()
+
+    let month = dateToday.getUTCMonth() + 1;
+    let year = dateToday.getFullYear();
+        
+    const date_string = `${year}-${month < 10 ? "0" + month : month}-${dateToday.getDate()<10? "0"+dateToday.getDate(): dateToday.getDate()}`
+    let modified_matches = await Event.find({ date: date_string, prediction_changed: true })
+    
+    await RedisClient.set("modified_matches", JSON.stringify(modified_matches))
+
     return res.status(200).json({
       success: true,
       data: { msg: "Prediction changed successfully", event },
@@ -473,3 +483,70 @@ export const deletePrediction = async (req: Request, res: Response) => {
     return res.status(500).send("Internal server error");
   }
 };
+
+export const  adminGetEventsByDate = async (req: Request, res: Response)=> {
+     const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      let _errors = errors.array().map((error) => {
+        return {
+          msg: error.msg,
+          field: error.param,
+          success: false,
+        };
+      })[0];
+      return res.status(400).json(_errors);
+    }
+
+    let { date } = req.body;
+
+    let prediction_changed: any[] = [];
+    let prediction_not_changed: any[] = [];
+    let events: any = {};
+
+    console.log(date);
+
+    try {
+      let _events: any[] = await Event.find({ date: date }).select(
+        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed live"
+      );
+      //will need to make seacrh case insensitive
+      if (_events != null || undefined) {
+        for (const match of _events) {
+          if (match.home_team.has_logo) {
+            match.home_team.logo = match.home_team.logo.replace(
+              "tipsscore.com",
+              "xscore.cc"
+            );
+          }
+          if (match.away_team.has_logo) {
+            match.away_team.logo = match.away_team.logo.replace(
+              "tipsscore.com",
+              "xscore.cc"
+            );
+          }
+          if (match.league.has_logo) {
+            match.league.logo.replace("tipsscore.com", "xscore.cc");
+          }
+
+          match.prediction_changed
+            ? prediction_changed.push(match)
+            : prediction_not_changed.push(match);
+        }
+
+        events.prediction_changed = prediction_changed;
+        events.prediction_not_changed = prediction_not_changed;
+        events.count = _events.length
+
+        return res.status(200).json({ success: true, events });
+      } else {
+        return res
+          .status(404)
+          .json({ success: false, msg: "Events not found" });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
+  }

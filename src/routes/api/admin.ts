@@ -2,6 +2,7 @@ import { Router } from "express";
 import { check } from "express-validator";
 import {
   addBookie,
+  adminGetEventsByDate,
   deleteBookie,
   login,
   signUp,
@@ -11,6 +12,7 @@ import {
   uploadLeague,
 } from "../../controllers/admin/admin";
 import { validateToken } from "../../middlewares/auth";
+import { isRegularExpressionLiteral } from "typescript";
 
 const router = Router();
 
@@ -48,14 +50,14 @@ router.post(
   signUp
 );
 
-  router.post(
-    "/login",
-    [
-      //check("phone_number", "Phone Number is required").not().isEmpty(),
-      check("password", "Password is required").not().isEmpty(),
-    ],
-    login
-  );
+router.post(
+  "/login",
+  [
+    //check("phone_number", "Phone Number is required").not().isEmpty(),
+    check("password", "Password is required").not().isEmpty(),
+  ],
+  login
+);
 
 router.put("/updateBookie", validateToken, updateBookie);
 
@@ -67,6 +69,8 @@ router.post("/updatePrediction", validateToken, updatePrediction);
 
 router.post("/uploadClub", validateToken, uploadClub);
 
-router.post("uploadLeague", validateToken, uploadLeague);
+router.post("/uploadLeague", validateToken, uploadLeague);
+
+//router.post("/events-by-date", validateToken,adminGetEventsByDate)
 
 module.exports = router;

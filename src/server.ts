@@ -35,7 +35,7 @@ configureRoutes(app);
 //start server and listen for connections
 const httpServer = createServer(app);
 
-httpServer.listen(config.PORT || 9000, () => {
+httpServer.listen(config.PORT , () => {
   console.info(
     `boombet /api/v1 Server started on`,
     httpServer.address(),
@@ -44,11 +44,11 @@ httpServer.listen(config.PORT || 9000, () => {
 });
 
 startStreamingServer();
-checkDailyEvents();
+/* checkDailyEvents();x
 checkWeeklyEvents();
 checkWeeklyEventsCron.start();
 checkDailyEventsCron.start();
-checkLiveEventsCron.start();
+checkLiveEventsCron.start(); */
 
 //createTeams().then();
 storeCacheValues().then();

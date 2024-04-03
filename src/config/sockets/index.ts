@@ -1,12 +1,13 @@
 import { WebSocketServer } from "ws";
+import { config } from "../config";
 
 //websockets server
 export const wss = new WebSocketServer(
   {
-    port: 9001,
+    port: Number(config.SOCKETS_PORT),
   },
   () => {
-    console.info("Boombet Websocket server started on port 9001");
+    console.info(`Boombet Websocket server started on port ${config.SOCKETS_PORT}`);
   }
 );
 

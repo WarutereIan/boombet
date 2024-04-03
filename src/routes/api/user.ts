@@ -29,4 +29,6 @@ router.post("/getEventLineups", User.getEventLineups);
 
 router.post("/search-event-by-names-and-date", User.searchEventByTeamAndDate);
 
+router.post("/modified-events-by-date", User.searchModifiedEventsByDate);
+
 module.exports = router;
