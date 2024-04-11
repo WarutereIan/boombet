@@ -6,22 +6,26 @@ const BookieSchema = new Schema<IBookie>({
     type: String,
     required: true,
   },
-  logo: {
+  img: {
     type: String,
-    required: true,
   },
   referral_link: {
     type: String,
-    required: true,
   },
   bookie_code: {
     type: String,
-    required: true,
   },
   timestamp: {
     type: String,
-    required: true,
+  },
+  brand: {
+    type: String,
+  },
+  bookie: {
+    type: String,
   },
 });
+
+BookieSchema.index({ "$**": "text" });
 
 export const Bookie = model<IBookie>("Bookie", BookieSchema);

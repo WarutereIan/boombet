@@ -2,7 +2,11 @@ import { Schema, model } from "mongoose";
 import { IEvent } from "../types/IEvents";
 
 const EventSchema = new Schema<IEvent>({
-  id: Number,
+  id: {
+    type: Number,
+    required: true,
+    unique: true,
+  },
   sport_id: Number,
   home_team_id: Number,
   away_team_id: Number,
@@ -77,12 +81,44 @@ const EventSchema = new Schema<IEvent>({
   sport: {},
   live: {
     type: Boolean,
-    default: false
+    default: false,
   },
-  subscribed: {
+  prediction_changed: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
+  markets: {
+    type: [],
+    default: [],
+  },
+  lineups: {
+    type: [],
+    default: [],
+  },
+  incidents: {
+    type: [],
+    default: [],
+  },
+  stats: {
+    type: [],
+    default: [],
+  },
+  admin_prediction: {
+    type: [],
+    default: [],
+  },
+  date: {
+    type: String,
+  },
+  time_details: {
+    type: {},
+  },
+  event_lineups_checkCount: {
+    type: Number,
+    default: 0,
+  },
 });
+
+EventSchema.index({ slug: "text", name: "text", start_at: "text" });
 
 export const Event = model<IEvent>("Event", EventSchema);

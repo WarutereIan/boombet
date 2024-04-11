@@ -8,11 +8,19 @@ import { createServer } from "http";
 import { config } from "./config/config";
 import { startStreamingServer } from "./sockets/server";
 import { checkLiveEventsCron } from "./cronJobs/checkLiveGames";
+import { createTeams } from "./scripts/createTeams";
+import { checkDailyEvents } from "./services/getDailyEvents";
+import { createBookies } from "./scripts/createBookies";
+import { storeCacheValues } from "./config/cacheValues";
+import { getLeagues } from "./services/getLeagues";
+import { checkDailyEventsCron } from "./cronJobs/checkDailyEvents";
+import { checkWeeklyEventsCron } from "./cronJobs/checkWeeklyEvents";
+import { checkWeeklyEvents } from "./services/getWeeklyEvents";
 
 let db: any;
 
 (async () => {
-  db = await connectDB();
+  db = connectDB().then();
 })();
 
 //initialize express app
@@ -36,4 +44,13 @@ httpServer.listen(config.PORT , () => {
 });
 
 startStreamingServer();
-checkLiveEventsCron.start();
+/* checkDailyEvents();x
+checkWeeklyEvents();
+checkWeeklyEventsCron.start();
+checkDailyEventsCron.start();
+checkLiveEventsCron.start(); */
+
+//createTeams().then();
+storeCacheValues().then();
+
+//getLeagues().then();

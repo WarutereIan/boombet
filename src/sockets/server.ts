@@ -18,19 +18,27 @@ export const startStreamingServer = () => {
     },
     async (msg: any) => {
       try {
-        console.log("number of live matches:", msg.body.length);
+        let response = {
+          success: true,
+          data: {
+            number_of_matches: msg.body.length,
+            matches: msg.body,
+          },
+        };
 
-        let clients_connected = 0
-
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(msg.body), { binary: false });
-            clients_connected ++
-          }
-          
-        })
-          
-          console.log("Number of WSS CLIENTS CONNECTED: ", clients_connected);
+        if (msg.body.length == 0) {
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(response), { binary: false });
+            }
+          });
+        } else {
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(response), { binary: false });
+            }
+          });
+        }
       } catch (err) {
         console.error(err);
       }

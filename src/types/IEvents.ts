@@ -17,20 +17,8 @@ export interface IEvent {
   away_team: {};
   start_at: string;
   priority: number;
-  home_score: {
-    current: number;
-    display: number;
-    period_1: number;
-    period_2: number;
-    normal_time: number;
-  };
-  away_score: {
-    current: number;
-    display: number;
-    period_1: number;
-    period_2: number;
-    normal_time: number;
-  };
+  home_score: {};
+  away_score: {};
   winner_code: number;
   aggregated_winner_code: any;
   result_only: boolean;
@@ -73,5 +61,12 @@ export interface IEvent {
   section: {};
   sport: {};
   live: boolean;
-  subscribed: boolean;
+  prediction_changed: boolean;
+  markets: [];
+  lineups: [];
+  incidents: [];
+  stats: [];
+  admin_prediction: [];
+  date: string;
+  event_lineups_checkCount: number;
 }
