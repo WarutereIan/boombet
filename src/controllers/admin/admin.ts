@@ -11,6 +11,7 @@ import { Team } from "../../models/Team";
 import { League } from "../../models/League";
 import { AdminBookie } from "../../models/AdminBookie";
 import { RedisClient } from "../../config/db";
+import { firestoreDb } from "../../config/firestore";
 
 export const signUp = async (req: Request, res: Response) => {
   const errors = validationResult(req);
@@ -354,15 +355,23 @@ export const updatePrediction = async (req: Request, res: Response) => {
   let { eventId, prediction } = req.body;
 
   try {
-    let _event = await Event.findOne({ id: eventId });
+    //change to firestore
+    const EventsRef = firestoreDb.collection("Events");
+    let eventRef = EventsRef.doc(`${eventId}`);
+    const doc = await eventRef.get();
 
-    if (!_event)
+    if (!doc)
       return res.status(404).json({
         success: false,
         data: "Event not found",
       });
 
-    _event.admin_prediction = prediction;
+    let newDoc = await eventRef.update({
+      admin_prediction: prediction,
+      prediction_changed: true,
+    });
+
+    /* _event.admin_prediction = prediction;
     _event.prediction_changed = true;
 
     await _event.save();
@@ -377,11 +386,11 @@ export const updatePrediction = async (req: Request, res: Response) => {
     const date_string = `${year}-${month < 10 ? "0" + month : month}-${dateToday.getDate()<10? "0"+dateToday.getDate(): dateToday.getDate()}`
     let modified_matches = await Event.find({ date: date_string, prediction_changed: true })
     
-    await RedisClient.set("modified_matches", JSON.stringify(modified_matches))
+    await RedisClient.set("modified_matches", JSON.stringify(modified_matches)) */
 
     return res.status(200).json({
       success: true,
-      data: { msg: "Prediction changed successfully", event },
+      data: { msg: "Prediction changed successfully", newDoc },
     });
   } catch (error: any) {
     console.error(error.message);
@@ -484,69 +493,91 @@ export const deletePrediction = async (req: Request, res: Response) => {
   }
 };
 
-export const  adminGetEventsByDate = async (req: Request, res: Response)=> {
-     const errors = validationResult(req);
+export const adminGetEventsByDate = async (req: Request, res: Response) => {
+  const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      console.log(errors);
-      let _errors = errors.array().map((error) => {
-        return {
-          msg: error.msg,
-          field: error.param,
-          success: false,
-        };
-      })[0];
-      return res.status(400).json(_errors);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    let _errors = errors.array().map((error) => {
+      return {
+        msg: error.msg,
+        field: error.param,
+        success: false,
+      };
+    })[0];
+    return res.status(400).json(_errors);
+  }
+
+  let { date } = req.body;
+
+  let prediction_changed: any[] = [];
+  let prediction_not_changed: any[] = [];
+  let matches: any = {};
+
+  console.log(date);
+
+  try {
+    const EventsRef = firestoreDb.collection("Events");
+    const events = await EventsRef.where("date", "==", date).get();
+
+    if (events.empty) {
+      console.log("Events for day", date, "not found");
+      return res.status(404).json({
+        success: false,
+        msg: "Events for given date not found",
+      });
     }
 
-    let { date } = req.body;
+    events.forEach((event: any) => {
+      event.prediction_changed
+        ? prediction_changed.push(event)
+        : prediction_not_changed.push(event);
+    });
 
-    let prediction_changed: any[] = [];
-    let prediction_not_changed: any[] = [];
-    let events: any = {};
+    matches.prediction_changed = prediction_changed;
+    matches.prediction_not_changed = prediction_not_changed;
+    matches.count = events.size;
 
-    console.log(date);
+    return res.status(200).json({
+      success: false,
+      matches,
+    });
 
-    try {
-      let _events: any[] = await Event.find({ date: date }).select(
-        "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed live"
-      );
-      //will need to make seacrh case insensitive
-      if (_events != null || undefined) {
-        for (const match of _events) {
-          if (match.home_team.has_logo) {
-            match.home_team.logo = match.home_team.logo.replace(
-              "tipsscore.com",
-              "xscore.cc"
-            );
-          }
-          if (match.away_team.has_logo) {
-            match.away_team.logo = match.away_team.logo.replace(
-              "tipsscore.com",
-              "xscore.cc"
-            );
-          }
-          if (match.league.has_logo) {
-            match.league.logo.replace("tipsscore.com", "xscore.cc");
-          }
-
-          match.prediction_changed
-            ? prediction_changed.push(match)
-            : prediction_not_changed.push(match);
+    /* let _events: any[] = await Event.find({ date: date }).select(
+      "id slug name start_at league_id home_team away_team home_score away_score main_odds league markets lineups incidents stats admin_prediction prediction_changed live"
+    );
+    //will need to make seacrh case insensitive
+    if (_events != null || undefined) {
+      for (const match of _events) {
+        if (match.home_team.has_logo) {
+          match.home_team.logo = match.home_team.logo.replace(
+            "tipsscore.com",
+            "xscore.cc"
+          );
+        }
+        if (match.away_team.has_logo) {
+          match.away_team.logo = match.away_team.logo.replace(
+            "tipsscore.com",
+            "xscore.cc"
+          );
+        }
+        if (match.league.has_logo) {
+          match.league.logo.replace("tipsscore.com", "xscore.cc");
         }
 
-        events.prediction_changed = prediction_changed;
-        events.prediction_not_changed = prediction_not_changed;
-        events.count = _events.length
-
-        return res.status(200).json({ success: true, events });
-      } else {
-        return res
-          .status(404)
-          .json({ success: false, msg: "Events not found" });
+        match.prediction_changed
+          ? prediction_changed.push(match)
+          : prediction_not_changed.push(match);
       }
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Internal server error");
-    }
+
+      events.prediction_changed = prediction_changed;
+      events.prediction_not_changed = prediction_not_changed;
+      events.count = _events.length;
+
+      return res.status(200).json({ success: true, events });
+    } */
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send("Internal server error");
   }
+};

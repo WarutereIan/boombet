@@ -71,6 +71,13 @@ router.post("/uploadClub", validateToken, uploadClub);
 
 router.post("/uploadLeague", validateToken, uploadLeague);
 
+router.post(
+  "/events-by-date",
+  [check("date", "date is required").not().isEmpty()],
+  validateToken,
+  adminGetEventsByDate
+);
+
 //router.post("/events-by-date", validateToken,adminGetEventsByDate)
 
 module.exports = router;
